@@ -4,26 +4,51 @@ if(!defined("ABSPATH")) die;
 
 if (!class_exists("xs_cart_options")) :
 
+/*
+*  XSoftware Cart Options Class
+*  The following class is used to set the plugin options
+*  Below is a description of the fields used
+*  $ sys : array
+*  It is an array containing important options of the plugin,
+*  checkout is the URL of checkout page, default is empty string
+*  currency is the used currency on the plugin, default is "EUR"
+*  TODO: Currency should be dynamic?
+*  menu is the menu item where show cart link, default is empty string
+*  $ discount : array
+*  It is a array containing all the discount in a product
+*  default : empty array
+*/
 class xs_cart_options
 {
 
         private $default = array (
                 'sys' => [
                         'checkout' => '',
-                        'currency' => 'EUR'
+                        'currency' => 'EUR',
+                        'menu' => '',
                 ],
                 'discount' => [
 
                 ]
         );
 
+        /*
+        *  __construct : void
+        *  The class constructor does not require any parameters and
+        *  initializes the options and hooks for the administration panel
+        */
         public function __construct()
         {
-                add_action('admin_menu', array($this, 'admin_menu'));
-                add_action('admin_init', array($this, 'section_menu'));
                 $this->options = get_option('xs_options_cart', $this->default);
+
+                add_action('admin_menu', [$this, 'admin_menu']);
+                add_action('admin_init', [$this, 'section_menu']);
         }
 
+        /*
+        *  void : menu_page : void
+        *  This method is used to create the entry in the XSoftware submenu
+        */
         function admin_menu()
         {
                 add_submenu_page(
@@ -32,10 +57,13 @@ class xs_cart_options
                 'Cart',
                 'manage_options',
                 'xsoftware_cart',
-                array($this, 'menu_page') );
+                [$this, 'menu_page']);
         }
 
-
+        /*
+        *  void : menu_page : void
+        *  This method is used to create the page template in the administration panel
+        */
         public function menu_page()
         {
                 if ( !current_user_can( 'manage_options' ) )  {
@@ -44,7 +72,7 @@ class xs_cart_options
 
                 echo '<div class="wrap">';
 
-                echo "<h2>Cart configuration</h2>";
+                echo '<h2>Cart configuration</h2>';
 
                 echo '<form action="options.php" method="post">';
 
@@ -58,56 +86,86 @@ class xs_cart_options
 
         }
 
+        /*
+        *  void : section_menu : void
+        *  This method is used to create references to the two most important
+        *  methods of the options which are 'input' and 'show'
+        */
         function section_menu()
         {
                 register_setting(
                         'cart_setting',
                         'xs_options_cart',
-                        array($this, 'input')
+                        [$this, 'input']
                 );
                 add_settings_section(
                         'cart_section',
                         'Settings',
-                        array($this, 'show'),
+                        [$this, 'show'],
                         'cart'
                 );
         }
 
+        /*
+        *  array : input : array
+        *  This method is used to validate and control the values
+        *  passed from the administration page
+        *  $input are the values of the administration panel
+        */
         function input($input)
         {
                 $current = $this->options;
 
+                /* If isset array 'sys' and it's not empty, save all values into current */
+                /* FIXME: Maybe take one by one value and check their value? */
                 if(isset($input['sys']) && !empty($input['sys']))
                         foreach($input['sys'] as $key => $value)
                                 $current['sys'][$key] = $value;
 
+                /* Check if the new discount is set correctly with code and value */
                 if(
                         isset($input['discount']) &&
                         !empty($input['discount']['code']) &&
                         !empty($input['discount']['value'])
                 ) {
+                        /* Make code uppercase to ignore case */
                         $code = strtoupper($input['discount']['code']);
+                        /* Add new discount at code */
                         $current['discount'][$code] = $input['discount']['value'];
                 }
 
+                /*
+                *  if user click to 'remove_discount' button,
+                *  remove the discount from the 'discount' array
+                */
+                /* TODO: Cast value or not? */
                 if(isset($input['remove_discount']) && !empty($input['remove_discount']))
                         unset($current['discount'][$input['remove_discount']]);
 
                 return $current;
         }
 
+        /*
+        *  void : show : void
+        *  This method is used to show and manage the various sections of the options
+        */
         function show()
         {
-                $tab = xs_framework::create_tabs( array(
+                /*
+                *  Create tabs for the various sections and put the current one in $tab
+                */
+                $tab = xs_framework::create_tabs([
                         'href' => '?page=xsoftware_cart',
-                        'tabs' => array(
+                        'tabs' => [
                                 'system' => 'System',
                                 'discount' => 'Discount'
-                        ),
+                        ],
                         'home' => 'system',
                         'name' => 'main_tab'
-                ));
-
+                ]);
+                /*
+                *  Switch for the current tab value and call the right method
+                */
                 switch($tab) {
                         case 'system':
                                 $this->show_system();
@@ -118,15 +176,20 @@ class xs_cart_options
                 }
         }
 
+        /*
+        *  void : show_system : void
+        *  This method is used to show system options
+        */
         function show_system()
         {
-                $options = array(
+                /* Create a html select with wordpress pages URL using {get_wp_pages_link} */
+                $options = [
                         'name' => 'xs_options_cart[sys][checkout]',
                         'selected' => $this->options['sys']['checkout'],
                         'data' => xs_framework::get_wp_pages_link(),
                         'default' => 'Select a checkout page',
                         'echo' => TRUE
-                );
+                ];
 
                 add_settings_field(
                         $options['name'],
@@ -136,13 +199,15 @@ class xs_cart_options
                         'cart_section',
                         $options
                 );
-                $options = array(
+
+                /* Create a html select with all currency using {get_currency_list} */
+                $options = [
                         'name' => 'xs_options_cart[sys][currency]',
                         'selected' => $this->options['sys']['currency'],
                         'data' => xs_framework::get_currency_list(),
                         'default' => 'Select a currency',
                         'echo' => TRUE
-                );
+                ];
 
                 add_settings_field(
                         $options['name'],
@@ -153,18 +218,21 @@ class xs_cart_options
                         $options
                 );
 
-                $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) );
+                /* Get all menus object in wordpress searching by 'nav_menu' type */
+                $menus = get_terms( 'nav_menu', ['hide_empty' => true] );
+                /* Transform into an array as $key = slug and $value = name */
                 foreach ($menus as $menu ) {
                         $data_menu[$menu->slug] = $menu->name;
                 }
 
-                $options = array(
+                /* Create a html select with the previous menu array */
+                $options = [
                         'name' => 'xs_options_cart[sys][menu]',
                         'selected' => $this->options['sys']['menu'],
                         'data' => $data_menu,
                         'default' => 'Select menu',
                         'echo' => TRUE
-                );
+                ];
 
                 add_settings_field(
                         $options['name'],
@@ -176,11 +244,17 @@ class xs_cart_options
                 );
         }
 
+        /*
+        *  void : show_discount : void
+        *  This method is used to show and manage discount array
+        */
         function show_discount()
         {
-                $importance = $this->options['discount'];
+                /* Get the discount array */
+                $discount = $this->options['discount'];
 
-                foreach($importance as $key => $value) {
+                /* Print all array values with a delete button */
+                foreach($discount as $key => $value) {
                         $data[$key][0] = $key;
                         $data[$key][1] = $value;
                         $data[$key][2] = xs_framework::create_button([
@@ -191,6 +265,7 @@ class xs_cart_options
                         ]);
                 }
 
+                /* Add a last line for add new discount */
                 $new[0] = xs_framework::create_input([
                         'class' => 'xs_full_width',
                         'name' => 'xs_options_cart[discount][code]'
@@ -203,15 +278,13 @@ class xs_cart_options
                 ]);
                 $data[] = $new;
 
+                /* Print the table */
                 xs_framework::create_table([
                         'class' => 'xs_admin_table xs_full_width',
                         'data' => $data,
                         'headers' => ['Code', 'Discount (%)', 'Actions']
                 ]);
-
         }
-
-
 }
 
 endif;

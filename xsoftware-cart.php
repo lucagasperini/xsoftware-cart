@@ -12,17 +12,29 @@ if(!defined("ABSPATH")) die;
 
 include 'xsoftware-cart-options.php';
 
-if (!class_exists("xs_cart_plugin")) :
+if (!class_exists('xs_cart_plugin')) :
 
+/*
+*  XSoftware Cart Plugin Class
+*  The following class is used to execute plugin operations
+*/
 class xs_cart_plugin
 {
 
+        /*
+        *  __construct : void
+        *  The class constructor does not require any parameters and
+        *  initializes the options and hooks for plugin operations
+        */
         public function __construct()
         {
                 $this->options = get_option('xs_options_cart');
 
+                /* Create a shortcode to print Add to Cart button in wordpress */
                 add_shortcode('xs_cart_add', [$this,'shortcode_add_cart']);
+                /* Create a shortcode to print Checkout page in a wordpress page */
                 add_shortcode('xs_cart_checkout', [$this,'shortcode_checkout']);
+                /* Use @xs_framework_menu_items to print cart menu item */
                 add_filter('xs_framework_menu_items', [ $this, 'print_menu_item' ], 2);
 
         }
