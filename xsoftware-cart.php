@@ -36,7 +36,6 @@ class xs_cart_plugin
                 add_shortcode('xs_cart_checkout', [$this,'shortcode_checkout']);
                 /* Use @xs_framework_menu_items to print cart menu item */
                 add_filter('xs_framework_menu_items', [ $this, 'print_menu_item' ], 2);
-
         }
 
         function print_menu_item($items)
