@@ -30,8 +30,8 @@ class xs_cart_plugin
         {
                 $this->options = get_option('xs_options_cart');
 
-                /* Create a shortcode to print Add to Cart button in wordpress */
-                add_shortcode('xs_cart_add', [$this,'shortcode_add_cart']);
+                /* Create a filter to print Add to Cart button in wordpress */
+                add_filter('xs_cart_add_html', [$this,'cart_add_html']);
                 /* Create a shortcode to print Checkout page in a wordpress page */
                 add_shortcode('xs_cart_checkout', [$this,'shortcode_checkout']);
                 /* Use @xs_framework_menu_items to print cart menu item */
@@ -73,16 +73,15 @@ class xs_cart_plugin
                 return $items;
         }
 
-
-        function shortcode_add_cart()
+        function cart_add_html($post_id)
         {
-                global $post;
+                $output = '';
 
-                wp_enqueue_style('xs_cart_item_style', plugins_url('style/item.css', __FILE__));
+                wp_enqueue_style('xs_cart_item_style', plugins_url('style/item.min.css', __FILE__));
 
                 $btn = xs_framework::create_button([
                         'name' => 'add_cart',
-                        'value' => $post->ID,
+                        'value' => $post_id,
                         'text' => 'Add to Cart'
                 ]);
                 $qt = xs_framework::create_input_number([
@@ -90,17 +89,20 @@ class xs_cart_plugin
                         'value' => 1
                 ]);
 
-                echo '<form action="'.$this->options['sys']['checkout'].'" method="get">';
-                xs_framework::create_container([
+                $output .= '<form action="'.$this->options['sys']['checkout'].'" method="get">';
+                $output .= xs_framework::create_container([
                         'class' => 'xs_add_cart_container',
                         'obj' => [$btn, $qt],
-                        'echo' => TRUE
+                        'echo' => FALSE
                 ]);
-                echo '</form>';
+                $output .= '</form>';
+
+                return $output;
         }
 
         function shortcode_checkout()
         {
+        var_dump($_GET);
                 if(isset($_GET['add_cart']) && !empty($_GET['add_cart'])){
                         if(isset($_GET['qt']) && !empty($_GET['qt']) && is_numeric($_GET['qt']))
                                 $qt = intval($_GET['qt']);
