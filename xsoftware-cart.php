@@ -102,7 +102,6 @@ class xs_cart_plugin
 
         function shortcode_checkout()
         {
-        var_dump($_GET);
                 if(isset($_GET['add_cart']) && !empty($_GET['add_cart'])){
                         if(isset($_GET['qt']) && !empty($_GET['qt']) && is_numeric($_GET['qt']))
                                 $qt = intval($_GET['qt']);
