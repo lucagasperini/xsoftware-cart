@@ -11,8 +11,6 @@ if (!class_exists("xs_cart_options")) :
 *  $ sys : array
 *  It is an array containing important options of the plugin,
 *  checkout is the URL of checkout page, default is empty string
-*  currency is the used currency on the plugin, default is "EUR"
-*  TODO: Currency should be dynamic?
 *  menu is the menu item where show cart link, default is empty string
 *  $ discount : array
 *  It is a array containing all the discount in a product
@@ -24,7 +22,6 @@ class xs_cart_options
         private $default = array (
                 'sys' => [
                         'checkout' => '',
-                        'currency' => 'EUR',
                         'menu' => '',
                 ],
                 'discount' => [
@@ -194,24 +191,6 @@ class xs_cart_options
                 add_settings_field(
                         $options['name'],
                         'Set checkout page',
-                        'xs_framework::create_select',
-                        'cart',
-                        'cart_section',
-                        $options
-                );
-
-                /* Create a html select with all currency using {get_currency_list} */
-                $options = [
-                        'name' => 'xs_options_cart[sys][currency]',
-                        'selected' => $this->options['sys']['currency'],
-                        'data' => xs_framework::get_currency_list(),
-                        'default' => 'Select a currency',
-                        'echo' => TRUE
-                ];
-
-                add_settings_field(
-                        $options['name'],
-                        'Set Currency',
                         'xs_framework::create_select',
                         'cart',
                         'cart_section',

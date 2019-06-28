@@ -36,6 +36,12 @@ class xs_cart_plugin
                 add_shortcode('xs_cart_checkout', [$this,'shortcode_checkout']);
                 /* Use @xs_framework_menu_items to print cart menu item */
                 add_filter('xs_framework_menu_items', [ $this, 'print_menu_item' ], 2);
+                /* Create a filter to show current the sale order */
+                add_filter('xs_cart_sale_order_html', [$this,'show_cart_html']);
+                /* Create a filter to show payment approved page */
+                add_filter('xs_cart_approved_html', [$this,'show_cart_approved_html']);
+                /* Create a filter to show empty cart page */
+                add_filter('xs_cart_empty_html', [$this,'show_cart_empty_html']);
         }
 
         function print_menu_item($items)
@@ -113,13 +119,16 @@ class xs_cart_plugin
 
                 } else if(isset($_GET['success']) && $_GET['success'] === 'true') {
 
-                        $result = apply_filters('xs_cart_validate', $_SESSION['xs_cart']);
+                        $info['payment'] = apply_filters('xs_cart_validate', $_SESSION['xs_cart']);
 
-                        if($result['state'] === 'approved') {
-                                apply_filters( 'xs_cart_approved', $result );
+                        if($info['payment']['state'] === 'approved') {
+                                $info += apply_filters( 'xs_cart_approved', $info['payment'] );
                                 unset($_SESSION['xs_cart']);
                                 if(isset($_SESSION['xs_cart_discount']))
                                         unset($_SESSION['xs_cart_discount']);
+
+                                echo apply_filters('xs_cart_approved_html', $info);
+                                return;
                         }
 
                 } else if(isset($_GET['rem_cart']) && !empty($_GET['rem_cart'])) {
@@ -140,44 +149,67 @@ class xs_cart_plugin
                         exit;
                 }
                 if(isset($_SESSION['xs_cart']) && !empty($_SESSION['xs_cart'])){
-                        $this->checkout_show_cart();
+                        $discount = isset($_SESSION['xs_cart_discount']) ?
+                                $_SESSION['xs_cart_discount'] :
+                                0;
+                        $args = [
+                                'cart' => $_SESSION['xs_cart'],
+                                'discount' => $discount
+                        ];
+                        $sale_order = apply_filters('xs_cart_sale_order', $args);
+                        echo apply_filters('xs_cart_sale_order_html', $sale_order);
+                        apply_filters( 'xs_cart_approval_link', $sale_order );
                 } else {
-                        echo 'The cart is empty!';
+                        echo apply_filters('xs_cart_empty_html', NULL);
                 }
         }
 
-        function checkout_show_cart()
+        function show_cart_empty_html()
         {
-                if(!isset($_SESSION['xs_cart']) || empty($_SESSION['xs_cart'])){
-                        echo 'Empty!';
-                        return;
-                }
-                if(isset($_SESSION['xs_cart_discount']) && !empty($_SESSION['xs_cart_discount']))
-                        $discount = $_SESSION['xs_cart_discount'];
-                else
-                        $discount = 0;
+                wp_enqueue_style(
+                        'xs_cart_checkout_style',
+                        plugins_url('style/cart.min.css', __FILE__)
+                );
 
-                wp_enqueue_style('xs_cart_checkout_style', plugins_url('style/cart.css', __FILE__));
+                $output = '';
+                $output .= '<h2>The cart is empty!</h2>';
+                return $output;
+        }
 
-                $currency = $this->options['sys']['currency'];
-                $args = [
-                        'cart' => $_SESSION['xs_cart'],
-                        'discount' => $discount
-                ];
-                $sale_order = apply_filters('xs_cart_sale_order', $args);
+        function show_cart_approved_html($sale_order)
+        {
+                wp_enqueue_style(
+                        'xs_cart_checkout_style',
+                        plugins_url('style/cart.min.css', __FILE__)
+                );
 
+                $output = '';
+                $output .= '<h2>The payment is successfull!</h2>';
+                $output .= '<iframe src="'.$sale_order['invoice_url'].'" class="xs_cart_pdf_frame">
+                        </iframe>';
+                return $output;
+        }
+
+
+        function show_cart_html($sale_order)
+        {
+                wp_enqueue_style(
+                        'xs_cart_checkout_style',
+                        plugins_url('style/cart.min.css', __FILE__)
+                );
+
+                $output = '';
                 $table = array();
-
 
                 foreach($sale_order['items'] as $id => $values) {
                         $table[$id]['id'] = $values['id'];
                         $table[$id]['name'] = $values['name'];
                         $table[$id]['quantity'] = $values['quantity'];
-                        $table[$id]['price'] = $values['price'] . ' ' . $currency;
+                        $table[$id]['price'] = $values['price'] . ' ' . $sale_order['currency'];
                         $table[$id]['actions'] = '<a href="?rem_cart='.$values['id'].'">Remove</a>';
                 }
 
-                xs_framework::create_table([
+                $output .= xs_framework::create_table([
                         'data' => $table,
                         'headers' => [
                                 'ID',
@@ -185,22 +217,23 @@ class xs_cart_plugin
                                 'Quantity',
                                 'Price',
                                 'Actions',
-                        ]
+                        ],
+                        'echo' => FALSE
                 ]);
 
                 $t['subtotal'][0] = 'Subtotal:';
-                $t['subtotal'][1] = $sale_order['untaxed'] . ' ' . $currency;
+                $t['subtotal'][1] = $sale_order['untaxed'] . ' ' . $sale_order['currency'];
                 $t['taxed'][0] = 'Taxed:';
-                $t['taxed'][1] = $sale_order['taxed'] . ' ' . $currency;
+                $t['taxed'][1] = $sale_order['taxed'] . ' ' . $sale_order['currency'];
                 $t['total'][0] = 'Total:';
-                $t['total'][1] = $sale_order['total'] . ' ' . $currency;
-                xs_framework::create_table([
-                        'data' => $t
+                $t['total'][1] = $sale_order['total'] . ' ' . $sale_order['currency'];
+                $output .= xs_framework::create_table([
+                        'data' => $t,
+                        'echo' => FALSE
                 ]);
 
-                $sale_order['currency'] = $currency;
+                $output .= '<form action="" method="GET">';
 
-                echo '<form action="" method="GET">';
                 $label = '<span>Discount Code:</span>';
                 $discount = xs_framework::create_input([
                         'name' => 'discount'
@@ -208,14 +241,15 @@ class xs_cart_plugin
                 $button = xs_framework::create_button([
                         'text' => 'Apply discount'
                 ]);
-                xs_framework::create_container([
+
+                $output .= xs_framework::create_container([
                         'class' => 'xs_cart_discount',
                         'obj' => [$label, $discount, $button],
-                        'echo' => TRUE
+                        'echo' => FALSE
                 ]);
-                echo '</form>';
+                $output .= '</form>';
 
-                apply_filters( 'xs_cart_approval_link', $sale_order );
+                return $output;
         }
 
 }
