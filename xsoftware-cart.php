@@ -201,11 +201,13 @@ class xs_cart_plugin
                 $output = '';
                 $table = array();
 
+                $symbol = $sale_order['currency_symbol'];
+
                 foreach($sale_order['items'] as $id => $values) {
                         $table[$id]['id'] = $values['id'];
                         $table[$id]['name'] = $values['name'];
                         $table[$id]['quantity'] = $values['quantity'];
-                        $table[$id]['price'] = $values['price'] . ' ' . $sale_order['currency'];
+                        $table[$id]['price'] = $values['price'] . ' ' . $symbol;
                         $table[$id]['actions'] = '<a href="?rem_cart='.$values['id'].'">Remove</a>';
                 }
 
@@ -222,11 +224,11 @@ class xs_cart_plugin
                 ]);
 
                 $t['subtotal'][0] = 'Subtotal:';
-                $t['subtotal'][1] = $sale_order['untaxed'] . ' ' . $sale_order['currency'];
+                $t['subtotal'][1] = $sale_order['untaxed'] . ' ' . $symbol;
                 $t['taxed'][0] = 'Taxed:';
-                $t['taxed'][1] = $sale_order['taxed'] . ' ' . $sale_order['currency'];
+                $t['taxed'][1] = $sale_order['taxed'] . ' ' . $symbol;
                 $t['total'][0] = 'Total:';
-                $t['total'][1] = $sale_order['total'] . ' ' . $sale_order['currency'];
+                $t['total'][1] = $sale_order['total'] . ' ' . $symbol;
                 $output .= xs_framework::create_table([
                         'data' => $t,
                         'echo' => FALSE
