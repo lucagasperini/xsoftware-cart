@@ -150,7 +150,7 @@ class xs_cart_plugin
                         apply_filters( 'xs_cart_add', $id_item, $qt );
 
                 /* Check if the payment is successful */
-                } else if(isset($_GET['success']) && $_GET['success'] === 'true') {
+                } else if(!empty($_SESSION['xs_cart']) && $_GET['success'] === 'true') {
 
                         /* Call the validation of payment with xs_cart_validate filter */
                         $info['payment'] = apply_filters('xs_cart_validate', $_SESSION['xs_cart']);
