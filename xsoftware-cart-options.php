@@ -43,7 +43,7 @@ class xs_cart_options
         }
 
         /*
-        *  void : menu_page : void
+        *  void : admin_menu : void
         *  This method is used to create the entry in the XSoftware submenu
         */
         function admin_menu()
