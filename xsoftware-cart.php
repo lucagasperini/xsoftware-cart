@@ -167,6 +167,10 @@ class xs_cart_plugin
 
                                 /* Call the HTML of approved payment with xs_cart_approved_html */
                                 echo apply_filters('xs_cart_approved_html', $info);
+                                /* Fetch the invoice with xs_cart_invoice */
+                                $invoice = apply_filters('xs_cart_invoice', $info);
+                                /* Print the invoice with xs_cart_invoice_html */
+                                echo apply_filters('xs_cart_invoice_html', $invoice);
                                 return;
                         }
 
