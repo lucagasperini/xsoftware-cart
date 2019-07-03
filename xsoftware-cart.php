@@ -153,12 +153,12 @@ class xs_cart_plugin
                 } else if(!empty($_SESSION['xs_cart']) && $_GET['success'] === 'true') {
 
                         /* Call the validation of payment with xs_cart_validate filter */
-                        $info['payment'] = apply_filters('xs_cart_validate', $_SESSION['xs_cart']);
+                        $info = apply_filters('xs_cart_validate', $_SESSION['xs_cart']);
 
                         /* Check if the status is approved */
                         if($info['payment']['state'] === 'approved') {
                                 /* Call the xs_cart_approved filter */
-                                $info += apply_filters( 'xs_cart_approved', $info['payment'] );
+                                $info = apply_filters( 'xs_cart_approved', $info );
                                 /* Remove the cart from session */
                                 unset($_SESSION['xs_cart']);
                                 /* Remove the discount if is set */
@@ -167,10 +167,6 @@ class xs_cart_plugin
 
                                 /* Call the HTML of approved payment with xs_cart_approved_html */
                                 echo apply_filters('xs_cart_approved_html', $info);
-                                /* Fetch the invoice with xs_cart_invoice */
-                                $invoice = apply_filters('xs_cart_invoice', $info);
-                                /* Print the invoice with xs_cart_invoice_html */
-                                echo apply_filters('xs_cart_invoice_html', $invoice);
                                 return;
                         }
 
