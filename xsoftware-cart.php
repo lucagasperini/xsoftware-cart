@@ -185,7 +185,8 @@ class xs_cart_plugin
                         !empty($_GET['invoice']) &&
                         is_numeric($_GET['invoice'])
                 ) {
-                        echo apply_filters('xs_cart_show_invoice', intval($_GET['invoice']));
+                        $info = apply_filters('xs_cart_get_invoice', intval($_GET['invoice']));
+                        echo apply_filters('xs_cart_show_invoice_html', $info);
                         return;
                 }
                 /* Check if is called discount operation */
