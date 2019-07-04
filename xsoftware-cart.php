@@ -131,7 +131,7 @@ class xs_cart_plugin
         }
 
         /*
-        *  string : cart_add_html : int
+        *  string : shortcode_checkout : void
         *  This method is used to create the checkout page and it's called by shortcode
         */
         function shortcode_checkout()
@@ -159,6 +159,12 @@ class xs_cart_plugin
                         if($info['payment']['state'] === 'approved') {
                                 /* Call the xs_cart_approved filter */
                                 $info = apply_filters( 'xs_cart_approved', $info );
+                                $info['invoice']['pdf'] = apply_filters(
+                                        'xs_cart_invoice_pdf_print',
+                                        $info
+                                );
+                                apply_filters('xs_cart_invoice_pdf',$info['invoice']);
+
                                 /* Remove the cart from session */
                                 unset($_SESSION['xs_cart']);
                                 /* Remove the discount if is set */
@@ -174,6 +180,13 @@ class xs_cart_plugin
                 } else if(isset($_GET['rem_cart']) && !empty($_GET['rem_cart'])) {
                         /* Remove the item from cart */
                         unset($_SESSION['xs_cart'][$_GET['rem_cart']]);
+                } else if(
+                        isset($_GET['invoice']) &&
+                        !empty($_GET['invoice']) &&
+                        is_numeric($_GET['invoice'])
+                ) {
+                        echo apply_filters('xs_cart_show_invoice', intval($_GET['invoice']));
+                        return;
                 }
                 /* Check if is called discount operation */
                 if(isset($_GET['discount']) && !empty($_GET['discount'])) {
@@ -187,10 +200,10 @@ class xs_cart_plugin
                 /* Check if the user is logged, if not redirect to login URL */
                 if(!is_user_logged_in()) {
                         $url = wp_login_url($this->options['sys']['checkout']);
-                        echo '<script type="text/javascript">
+                        /*echo '<script type="text/javascript">
                         window.location.href = "'.$url.'";
                         </script>';
-                        exit;
+                        exit;*/
                 }
                 /* Check if cart session is set and not empty to show on html checkout page */
                 if(isset($_SESSION['xs_cart']) && !empty($_SESSION['xs_cart'])) {
