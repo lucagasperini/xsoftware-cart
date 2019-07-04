@@ -204,11 +204,11 @@ class xs_cart_plugin
                                 'discount' => $discount
                         ];
                         /* Get a sale order by xs_cart_sale_order filter */
-                        $sale_order = apply_filters('xs_cart_sale_order', $args);
+                        $so = apply_filters('xs_cart_sale_order', $args);
                         /* Print the sale order by xs_cart_sale_order_html filter */
-                        echo apply_filters('xs_cart_sale_order_html', $sale_order);
+                        echo apply_filters('xs_cart_sale_order_html', $so);
                         /* Print the payment link */
-                        apply_filters( 'xs_cart_approval_link', $sale_order );
+                        apply_filters( 'xs_cart_approval_link', $so );
                 /* If cart is empty or is not set print the html page for empty cart */
                 } else {
                         echo apply_filters('xs_cart_empty_html', NULL);
@@ -238,7 +238,7 @@ class xs_cart_plugin
         *  string : show_cart_approved_html : array
         *  This method is used to create the html page for approved payment
         */
-        function show_cart_approved_html($sale_order)
+        function show_cart_approved_html($so)
         {
                 /* Add the css style */
                 wp_enqueue_style(
@@ -250,7 +250,7 @@ class xs_cart_plugin
                 $output = '';
                 $output .= '<h2>The payment is successfull!</h2>';
                 /* Print the invoice pdf on a frame */
-                $output .= '<iframe src="'.$sale_order['invoice_url'].'" class="xs_cart_pdf_frame">
+                $output .= '<iframe src="'.$so['invoice_url'].'" class="xs_cart_pdf_frame">
                         </iframe>';
                 /* Return the HTML */
                 return $output;
@@ -260,7 +260,7 @@ class xs_cart_plugin
         *  string : show_cart_html : array
         *  This method is used to create the html page for no empty cart
         */
-        function show_cart_html($sale_order)
+        function show_cart_html($so)
         {
                 /* Add the css style */
                 wp_enqueue_style(
@@ -274,10 +274,10 @@ class xs_cart_plugin
                 $table = array();
 
                 /* Get the currency symbol */
-                $symbol = $sale_order['currency_symbol'];
+                $symbol = $so['currency_symbol'];
 
                 /* Get the variable for sale order */
-                foreach($sale_order['items'] as $id => $values) {
+                foreach($so['items'] as $id => $values) {
                         $table[$id]['id'] = $values['id'];
                         $table[$id]['name'] = $values['name'];
                         $table[$id]['quantity'] = $values['quantity'];
@@ -300,11 +300,11 @@ class xs_cart_plugin
 
                 /* Get the global property from sale order */
                 $t['subtotal'][0] = 'Subtotal:';
-                $t['subtotal'][1] = $sale_order['untaxed'] . ' ' . $symbol;
+                $t['subtotal'][1] = $so['untaxed'] . ' ' . $symbol;
                 $t['taxed'][0] = 'Taxed:';
-                $t['taxed'][1] = $sale_order['taxed'] . ' ' . $symbol;
+                $t['taxed'][1] = $so['taxed'] . ' ' . $symbol;
                 $t['total'][0] = 'Total:';
-                $t['total'][1] = $sale_order['total'] . ' ' . $symbol;
+                $t['total'][1] = $so['total'] . ' ' . $symbol;
                 /* Get the table */
                 $output .= xs_framework::create_table([
                         'data' => $t,
