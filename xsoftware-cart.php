@@ -32,54 +32,6 @@ class xs_cart_plugin
 
                 /* Create a shortcode to print Checkout page in a wordpress page */
                 add_shortcode('xs_cart_checkout', [$this,'shortcode_checkout']);
-                /* Use @xs_framework_menu_items to print cart menu item */
-                add_filter('xs_framework_menu_items', [ $this, 'print_menu_item' ], 2);
-        }
-
-        /*
-        *  array : print_menu_item : array
-        *  This method is used to create the menu items
-        *  using menu class build in on wordpress
-        *  $items are the menu class defined on this wordpress installation
-        */
-        function print_menu_item($items)
-        {
-                /* Add a parent menu item for user */
-                $top = xs_framework::insert_nav_menu_item([
-                        'title' => '<i class="fas fa-user-circle"></i>',
-                        'url' => '',
-                        'order' => 100
-                ]);
-                /* Append this menu on input array */
-                $items[] = $top;
-
-                /* Add a child menu item for shopping cart */
-                $items[] = xs_framework::insert_nav_menu_item([
-                        'title' => '<i class="fas fa-shopping-cart"></i><span> Cart</span>',
-                        'url' => $this->options['sys']['checkout'],
-                        'order' => 101,
-                        'parent' => $top->ID
-                ]);
-
-                /* If user is logged print Logout item, else Login item*/
-                if(is_user_logged_in()) {
-                        $items[] = xs_framework::insert_nav_menu_item([
-                                'title' => '<i class="fas fa-sign-out-alt"></i> Logout</span>',
-                                'url' => wp_logout_url( home_url() ),
-                                'order' => 102,
-                                'parent' => $top->ID
-                        ]);
-                } else {
-                        $items[] = xs_framework::insert_nav_menu_item([
-                                'title' => '<i class="fas fa-sign-in-alt"></i><span> Login</span>',
-                                'url' => wp_login_url( home_url() ),
-                                'order' => 102,
-                                'parent' => $top->ID
-                        ]);
-                }
-
-                /* Return modify menu class array */
-                return $items;
         }
 
         /*
@@ -136,13 +88,17 @@ class xs_cart_plugin
                 } else if(isset($_GET['rem_cart']) && !empty($_GET['rem_cart'])) {
                         /* Remove the item from cart */
                         unset($_SESSION['xs_cart'][$_GET['rem_cart']]);
-                } else if(
-                        isset($_GET['invoice']) &&
-                        !empty($_GET['invoice']) &&
-                        is_numeric($_GET['invoice'])
-                ) {
-                        $info = apply_filters('xs_cart_get_invoice', intval($_GET['invoice']));
-                        echo apply_filters('xs_cart_show_invoice_html', $info);
+                } else if(isset($_GET['invoice'])) {
+
+                        if(is_numeric($_GET['invoice'])) {
+                                $id = intval($_GET['invoice']);
+                                $info = apply_filters('xs_cart_get_invoice', $id);
+                                echo apply_filters('xs_cart_show_invoice_html', $info);
+                        } else {
+                                $user = get_current_user_id();
+                                $info = apply_filters('xs_cart_list_invoice', $user);
+                                echo apply_filters('xs_cart_show_list_invoice_html', $info);
+                        }
                         return;
                 }
                 /* Check if is called discount operation */
