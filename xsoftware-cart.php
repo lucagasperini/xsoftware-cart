@@ -109,10 +109,10 @@ class xs_cart_plugin
                 /* Check if the user is logged, if not redirect to login URL */
                 if(!is_user_logged_in()) {
                         $url = wp_login_url($this->options['sys']['checkout']);
-                        /*echo '<script type="text/javascript">
+                        echo '<script type="text/javascript">
                         window.location.href = "'.$url.'";
                         </script>';
-                        exit;*/
+                        exit;
                 }
                 /* Check if cart session is set and not empty to show on html checkout page */
                 if(isset($_SESSION['xs_cart']) && !empty($_SESSION['xs_cart'])) {
