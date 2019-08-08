@@ -266,8 +266,8 @@ class xs_cart_options
         }
 }
 
-endif;
-
 $xs_cart_options = new xs_cart_options();
+
+endif;
 
 ?>

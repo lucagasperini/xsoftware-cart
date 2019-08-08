@@ -140,8 +140,8 @@ class xs_cart_plugin
 
 }
 
-endif;
-
 $xs_cart_plugin = new xs_cart_plugin();
+
+endif;
 
 ?>
