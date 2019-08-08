@@ -127,6 +127,7 @@ class xs_cart_plugin
                         ];
                         /* Get a sale order by xs_cart_sale_order filter */
                         $so = apply_filters('xs_cart_sale_order', $args);
+                        $so['urls']['checkout'] = $this->options['sys']['checkout'];
                         /* Print the sale order by xs_cart_sale_order_html filter */
                         $html .= apply_filters('xs_cart_sale_order_html', $so);
                         /* Print the payment link */
