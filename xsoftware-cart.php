@@ -77,8 +77,7 @@ class xs_cart_plugin
                                         unset($_SESSION['xs_cart_discount']);
 
                                 /* Call the HTML of approved payment with xs_cart_approved_html */
-                                echo apply_filters('xs_cart_approved_html', $info);
-                                return;
+                                return apply_filters('xs_cart_approved_html', $info);
                         }
 
                 /* Check if is called rem_cart operation */
@@ -90,13 +89,12 @@ class xs_cart_plugin
                         if(is_numeric($_GET['invoice'])) {
                                 $id = intval($_GET['invoice']);
                                 $info = apply_filters('xs_cart_get_invoice', $id);
-                                $html .= apply_filters('xs_cart_show_invoice_html', $info);
+                                return apply_filters('xs_cart_show_invoice_html', $info);
                         } else {
                                 $user = get_current_user_id();
                                 $info = apply_filters('xs_cart_list_invoice', $user);
-                                $html .= apply_filters('xs_cart_show_list_invoice_html', $info);
+                                return apply_filters('xs_cart_show_list_invoice_html', $info);
                         }
-                        return;
                 }
                 /* Check if is called discount operation */
                 if(isset($_GET['discount']) && !empty($_GET['discount'])) {
@@ -134,7 +132,7 @@ class xs_cart_plugin
                         $html .= apply_filters( 'xs_cart_approval_link', $so );
                 /* If cart is empty or is not set print the html page for empty cart */
                 } else {
-                        $html .= apply_filters('xs_cart_empty_html', NULL);
+                        return apply_filters('xs_cart_empty_html', NULL);
                 }
                 return $html;
         }
