@@ -40,6 +40,7 @@ class xs_cart_plugin
         */
         function shortcode_checkout()
         {
+                $html = '';
                 /* Check if is called add_cart operation */
                 if(isset($_GET['add_cart']) && !empty($_GET['add_cart'])){
                         /* Check if is defined a quantity, if not quantity is 1 */
@@ -89,11 +90,11 @@ class xs_cart_plugin
                         if(is_numeric($_GET['invoice'])) {
                                 $id = intval($_GET['invoice']);
                                 $info = apply_filters('xs_cart_get_invoice', $id);
-                                echo apply_filters('xs_cart_show_invoice_html', $info);
+                                $html .= apply_filters('xs_cart_show_invoice_html', $info);
                         } else {
                                 $user = get_current_user_id();
                                 $info = apply_filters('xs_cart_list_invoice', $user);
-                                echo apply_filters('xs_cart_show_list_invoice_html', $info);
+                                $html .= apply_filters('xs_cart_show_list_invoice_html', $info);
                         }
                         return;
                 }
@@ -109,10 +110,9 @@ class xs_cart_plugin
                 /* Check if the user is logged, if not redirect to login URL */
                 if(!is_user_logged_in()) {
                         $url = wp_login_url($this->options['sys']['checkout']);
-                        echo '<script type="text/javascript">
+                        return '<script type="text/javascript">
                         window.location.href = "'.$url.'";
                         </script>';
-                        exit;
                 }
                 /* Check if cart session is set and not empty to show on html checkout page */
                 if(isset($_SESSION['xs_cart']) && !empty($_SESSION['xs_cart'])) {
@@ -128,13 +128,14 @@ class xs_cart_plugin
                         /* Get a sale order by xs_cart_sale_order filter */
                         $so = apply_filters('xs_cart_sale_order', $args);
                         /* Print the sale order by xs_cart_sale_order_html filter */
-                        echo apply_filters('xs_cart_sale_order_html', $so);
+                        $html .= apply_filters('xs_cart_sale_order_html', $so);
                         /* Print the payment link */
-                        apply_filters( 'xs_cart_approval_link', $so );
+                        $html .= apply_filters( 'xs_cart_approval_link', $so );
                 /* If cart is empty or is not set print the html page for empty cart */
                 } else {
-                        echo apply_filters('xs_cart_empty_html', NULL);
+                        $html .= apply_filters('xs_cart_empty_html', NULL);
                 }
+                return $html;
         }
 
 }
