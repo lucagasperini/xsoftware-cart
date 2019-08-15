@@ -129,9 +129,7 @@ class xs_cart_plugin
                         /* Print the sale order by xs_cart_sale_order_html filter */
                         $html .= apply_filters('xs_cart_sale_order_html', $so);
                         /* Print the payment link */
-                        $payment = apply_filters( 'xs_cart_approval_link', $so );
-                        $html .= $payment['html'];
-                        unset($payment['html']);
+                        $html .= apply_filters( 'xs_cart_approval_link', $so );
                 /* If cart is empty or is not set print the html page for empty cart */
                 } else {
                         return apply_filters('xs_cart_empty_html', NULL);
