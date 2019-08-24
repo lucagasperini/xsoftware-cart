@@ -68,6 +68,7 @@ class xs_cart_plugin
                         if($info['payment']['state'] === 'approved') {
                                 /* Call the xs_cart_approved filter */
                                 $info = apply_filters( 'xs_cart_approved', $info );
+                                apply_filters( 'xs_users_analytics_payment', $info );
                                 $info = apply_filters( 'xs_cart_invoice_pdf', $info );
 
                                 /* Remove the cart from session */
